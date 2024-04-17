@@ -63,6 +63,10 @@ protected:
 
     virtual void timerEvent(QTimerEvent *evt) override;
 
+    virtual void dragEnterEvent(QDragEnterEvent *evt) override;
+
+    virtual void dropEvent(QDropEvent *evt) override;
+
 private:
 
     // implementation in MainWindow/slots.cpp - BEGIN -------------------------

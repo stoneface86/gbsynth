@@ -144,6 +144,8 @@ MainWindow::MainWindow() :
     applyConfig(config, Config::CategoryAll);
     config.writeSettings(mAudioEnumerator, mMidiEnumerator);
 
+    setAcceptDrops(true);
+
     setStyleSheet(QStringLiteral(R"stylesheet(
 QToolBar QLabel {
     padding-left: 3px;
@@ -223,6 +225,23 @@ void MainWindow::timerEvent(QTimerEvent *evt) {
         QMainWindow::timerEvent(evt);
     }
 }
+
+void MainWindow::dragEnterEvent(QDragEnterEvent* evt) {
+    // only one URL, being the location of the module to open, is accepted
+    auto const mime = evt->mimeData();
+    if (mime->hasUrls() && mime->urls().length() == 1) {
+        evt->acceptProposedAction();
+    }
+}
+
+void MainWindow::dropEvent(QDropEvent* evt) {
+    if (maybeSave()) {
+        openFile(evt->mimeData()->urls().at(0).toLocalFile());
+    }
+
+}
+
+
 
 // PRIVATE METHODS -----------------------------------------------------------
 
