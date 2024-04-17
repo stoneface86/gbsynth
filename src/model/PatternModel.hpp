@@ -180,6 +180,8 @@ public:
 
     void backspace();
 
+    void insertRow();
+
     // order
 
     //
@@ -281,6 +283,7 @@ private:
     friend class OrderRemoveCmd;
     friend class OrderDuplicateCmd;
     friend class OrderSwapCmd;
+    friend class InsertRowCmd;
 
     Q_DISABLE_COPY(PatternModel)
 

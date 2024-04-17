@@ -60,6 +60,8 @@ public:
 
     void pasteMix();
 
+    void insertRow();
+
     void erase();
 
     void selectAll();

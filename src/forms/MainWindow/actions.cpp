@@ -118,6 +118,11 @@ void MainWindow::createActions(TableActions const& instrumentActions, TableActio
     act->setData(ShortcutTable::PasteMix);
     connectActionTo(act, mPatternEditor, pasteMix);
 
+    act = setupAction(menuEdit, tr("&Insert Row"), tr("Inserts an empty row at the cursor"));
+    act->setData(ShortcutTable::InsertRow);
+    connectActionTo(act, mPatternEditor, insertRow);
+
+
     act = setupAction(menuEdit, tr("&Erase"), tr("Erases selection contents"), QKeySequence::Delete);
     connectActionTo(act, mPatternEditor, erase);
     

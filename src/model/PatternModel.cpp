@@ -934,6 +934,13 @@ void PatternModel::backspace() {
     }
 }
 
+void PatternModel::insertRow() {
+    auto cmd = new InsertRowCmd(*this);
+    cmd->setText(tr("insert row"));
+    mModule.undoStack()->push(cmd);
+
+}
+
 void PatternModel::setOrderRow(trackerboy::OrderRow row) {
     if (order()[mCursorPattern] != row) {
         auto cmd = new OrderEditCmd(*this, row, mCursorPattern);

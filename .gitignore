@@ -4,3 +4,5 @@ out/
 tools/
 CMakeSettings.json
 CMakeLists.txt.user
+*.kdev4
+.kdev4/

@@ -381,3 +381,40 @@ void BackspaceCmd::undo() {
     mModel.invalidate(mPattern, true);
 }
 
+InsertRowCmd::InsertRowCmd(PatternModel& model, QUndoCommand* parent) :
+    QUndoCommand(parent),
+    mModel(model),
+    mPattern(model.mCursorPattern),
+    mTrack(model.mCursor.track),
+    mRow(model.mCursor.row),
+    mLastRow(model.source()->patterns().length() - 1),
+    mTruncated(model.currentPattern()[mLastRow][mTrack])
+{
+}
+
+void InsertRowCmd::redo() {
+    {
+        auto editor = mModel.mModule.edit();
+        auto &track = mModel.source()->patterns().getTrack(static_cast<trackerboy::ChType>(mTrack), mPattern);
+        // shift down
+        for (auto i = mLastRow; i > mRow; --i) {
+            track[i] = track[i - 1];
+        }
+        track[mRow] = {};
+    }
+    mModel.invalidate(mPattern, true);
+}
+
+void InsertRowCmd::undo() {
+    {
+        auto editor = mModel.mModule.edit();
+        auto &track = mModel.source()->patterns().getTrack(static_cast<trackerboy::ChType>(mTrack), mPattern);
+        // shift up
+        for (auto i = mRow; i < mLastRow; ++i) {
+            track[i] = track[i + 1];
+        }
+        track[mLastRow] = mTruncated;
+    }
+    mModel.invalidate(mPattern, true);
+}
+

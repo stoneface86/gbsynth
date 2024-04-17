@@ -39,6 +39,7 @@ static std::array const SHORTCUT_NAMES = {
     QT_TR_NOOP("Decrement octave"),
     QT_TR_NOOP("Play / Stop"),
     QT_TR_NOOP("Mix paste"),
+    QT_TR_NOOP("Insert row"),
     QT_TR_NOOP("Transpose, decrease note"),
     QT_TR_NOOP("Transpose, increase note"),
     QT_TR_NOOP("Transpose, decrease octave"),

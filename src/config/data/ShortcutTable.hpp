@@ -30,6 +30,7 @@ public:
         PlayStop,
         // QAction
         PasteMix,
+        InsertRow,
         TransposeDecNote,
         TransposeIncNote,
         TransposeDecOctave,

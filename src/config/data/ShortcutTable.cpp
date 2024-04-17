@@ -52,6 +52,8 @@ QKeySequence ShortcutTable::getDefault(Shortcut shortcut) noexcept {
             return tr("Return");
         case PasteMix:
             return tr("Ctrl+M");
+        case InsertRow:
+            return tr("Ins");
         case TransposeDecNote:
             return tr("Ctrl+F1");
         case TransposeIncNote:

@@ -258,3 +258,20 @@ public:
     virtual void undo() override;
 
 };
+
+class InsertRowCmd : public QUndoCommand {
+
+    PatternModel &mModel;
+    int const mPattern;
+    int const mTrack;
+    int const mRow;
+    int const mLastRow;
+    trackerboy::TrackRow const mTruncated;
+
+public:
+    explicit InsertRowCmd(PatternModel &model, QUndoCommand *parent = nullptr);
+
+    virtual void redo() override;
+
+    virtual void undo() override;
+};

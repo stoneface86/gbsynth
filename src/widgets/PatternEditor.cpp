@@ -459,6 +459,10 @@ void PatternEditor::pasteMix() {
     pasteImpl(true);
 }
 
+void PatternEditor::insertRow() {
+    mModel.insertRow();
+}
+
 void PatternEditor::pasteImpl(bool mix) {
     if (mClipboard.hasClip()) {
         auto &clip = mClipboard.clip();
