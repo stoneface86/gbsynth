@@ -47,6 +47,8 @@ static std::array const SHORTCUT_NAMES = {
     QT_TR_NOOP("Transpose..."),
     QT_TR_NOOP("Reverse"),
     QT_TR_NOOP("Replace instrument"),
+    QT_TR_NOOP("Grow pattern"),
+    QT_TR_NOOP("Shrink pattern"),
     QT_TR_NOOP("Play"),
     QT_TR_NOOP("Play from start"),
     QT_TR_NOOP("Play from cursor"),

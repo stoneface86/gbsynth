@@ -166,6 +166,16 @@ void MainWindow::createActions(TableActions const& instrumentActions, TableActio
 
     menuEdit->addSeparator(); // ----------------------------------------------
 
+    act = setupAction(menuEdit, tr("Grow pattern"), tr("Grows a selection by adding spaces in between rows"));
+    act->setData(ShortcutTable::GrowPattern);
+    connectActionTo(act, mPatternEditor, growPattern);
+
+    act = setupAction(menuEdit, tr("Shrink pattern"), tr("Shrinks a selection by removing spaces in between rows"));
+    act->setData(ShortcutTable::ShrinkPattern);
+    connectActionTo(act, mPatternEditor, shrinkPattern);
+
+    menuEdit->addSeparator(); // ----------------------------------------------
+
     act = setupAction(menuEdit, tr("Key repetition"), tr("Toggles key repetition for pattern editor"));
     act->setCheckable(true);
     act->setChecked(true);

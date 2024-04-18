@@ -941,6 +941,29 @@ void PatternModel::insertRow() {
 
 }
 
+bool PatternModel::canGrowOrShrink() const {
+    return mHasSelection && mSelection.iterator().rows() > 2;
+}
+
+
+void PatternModel::growPattern() {
+    if (canGrowOrShrink()) {
+        auto cmd = new GrowCmd(*this);
+        cmd->setText(tr("grow pattern"));
+        mModule.undoStack()->push(cmd);
+    }
+}
+
+void PatternModel::shrinkPattern() {
+    if (canGrowOrShrink()) {
+        auto cmd = new ShrinkCmd(*this);
+        cmd->setText(tr("shrink pattern"));
+        mModule.undoStack()->push(cmd);
+    }
+}
+
+
+
 void PatternModel::setOrderRow(trackerboy::OrderRow row) {
     if (order()[mCursorPattern] != row) {
         auto cmd = new OrderEditCmd(*this, row, mCursorPattern);

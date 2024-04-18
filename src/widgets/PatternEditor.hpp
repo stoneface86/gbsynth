@@ -80,6 +80,11 @@ public:
 
     void replaceInstrument();
 
+    void growPattern();
+
+    void shrinkPattern();
+
+
 signals:
     void previewNote(int note, int track, int instrument);
 

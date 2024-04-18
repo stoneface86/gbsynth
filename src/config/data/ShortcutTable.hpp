@@ -38,6 +38,8 @@ public:
         Transpose,
         Reverse,
         ReplaceInstrument,
+        GrowPattern,
+        ShrinkPattern,
         Play,
         PlayFromStart,
         PlayFromCursor,

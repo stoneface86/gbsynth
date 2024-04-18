@@ -533,6 +533,14 @@ void PatternEditor::replaceInstrument() {
     }
 }
 
+void PatternEditor::growPattern() {
+    mModel.growPattern();
+}
+
+void PatternEditor::shrinkPattern() {
+    mModel.shrinkPattern();
+}
+
 void PatternEditor::stepDown() {
     mModel.moveCursorRow(mEditStep);
 }

@@ -200,6 +200,84 @@ void ReplaceInstrumentCmd::undo() {
     restore(false);
 }
 
+GrowCmd::GrowCmd(PatternModel& model) :
+    SelectionCmd(model)
+{
+}
+
+void GrowCmd::redo() {
+    {
+        auto ctx = mModel.mModule.edit();
+        auto iter = mClip.selection().iterator();
+        auto pattern = mModel.source()->getPattern(mPattern);
+
+        auto const numGrows = iter.rows() / 2;
+        auto const srcRowStart = iter.rowStart() + numGrows - 1;
+        auto const destRowStart = iter.rowStart() + ((numGrows - 1) * 2);
+
+        for (auto track = iter.trackStart(); track <= iter.trackEnd(); ++track) {
+            auto const trackCh = static_cast<trackerboy::ChType>(track);
+            auto dst = destRowStart;
+            auto src = srcRowStart;
+            // grow, move rows
+            for (auto i = numGrows; i >= 1; --i) {
+                pattern.getTrackRow(trackCh, dst) = pattern.getTrackRow(trackCh, src);
+                dst -= 2;
+                --src;
+            }
+            // add spacing, set to an empty row
+            for (auto i = iter.rowStart() + 1; i <= iter.rowEnd(); i += 2) {
+                pattern.getTrackRow(trackCh, i) = {};
+            }
+        }
+
+    }
+    mModel.invalidate(mPattern, true);
+}
+
+void GrowCmd::undo() {
+    restore(true);
+}
+
+ShrinkCmd::ShrinkCmd(PatternModel& model) :
+    SelectionCmd(model)
+{
+}
+
+void ShrinkCmd::redo() {
+    {
+        auto ctx = mModel.mModule.edit();
+        auto iter = mClip.selection().iterator();
+        auto pattern = mModel.source()->getPattern(mPattern);
+
+        auto const outRows = iter.rows() / 2; // output row count, or number of rows after shrinking
+        auto const outStart = iter.rowStart() + 1;
+        auto const inStart = iter.rowStart() + 2;
+        auto const spaceStart = iter.rowStart() + outRows;
+
+        for (auto track = iter.trackStart(); track <= iter.trackEnd(); ++track) {
+            auto const trackCh = static_cast<trackerboy::ChType>(track);
+            auto outRow = outStart;
+            auto inRow = inStart;
+            // do the shrink
+            for (auto i = 1; i < outRows; ++i) {
+                pattern.getTrackRow(trackCh, outRow) = pattern.getTrackRow(trackCh, inRow);
+                ++outRow;
+                inRow += 2;
+            }
+            // clear the free space after shrinking
+            for (auto i = spaceStart; i < iter.rowEnd(); ++i) {
+                pattern.getTrackRow(trackCh, i) = {};
+            }
+        }
+
+    }
+    mModel.invalidate(mPattern, true);
+}
+
+void ShrinkCmd::undo() {
+    restore(true);
+}
 
 TrackEditCmd::TrackEditCmd(
     PatternModel &model,

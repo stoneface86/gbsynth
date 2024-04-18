@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Added
+ - [#20] Drag n drop modules to load them.
+ - Insert row, pressing `Ins` will insert an empty row at the cursor,
+   shifting all rows below it down by 1.
+ - Grow pattern, `Ctrl+G` or Edit > Grow pattern, grows a selection in
+   a pattern by adding an empty row in between each row.
+ - Shrink pattern, `Ctrl+H` or Edit > Shrink pattern, inverse of grow pattern
+   by removing spaces in between rows of a selection.
+
+[#20]: https://github.com/stoneface86/trackerboy/issues/20
+
 ## [0.6.3] - 2023-01-26
 
 ### Added

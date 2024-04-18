@@ -121,6 +121,35 @@ public:
 };
 
 //
+// Command to grow a pattern
+//
+class GrowCmd : public SelectionCmd {
+
+public:
+    explicit GrowCmd(PatternModel &model);
+
+    virtual void redo() override;
+
+    virtual void undo() override;
+
+};
+
+//
+// Command to shrink a pattern
+//
+class ShrinkCmd : public SelectionCmd {
+
+public:
+    explicit ShrinkCmd(PatternModel &model);
+
+    virtual void redo() override;
+
+    virtual void undo() override;
+
+};
+
+
+//
 // Base command class for editing a column in a track row
 //
 class TrackEditCmd : public QUndoCommand {

@@ -68,6 +68,10 @@ QKeySequence ShortcutTable::getDefault(Shortcut shortcut) noexcept {
             return tr("Ctrl+R");
         case ReplaceInstrument:
             return {};
+        case GrowPattern:
+            return tr("Ctrl+G");
+        case ShrinkPattern:
+            return tr("Ctrl+H");
         case Play:
             return {};
         case PlayFromStart:

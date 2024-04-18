@@ -182,6 +182,10 @@ public:
 
     void insertRow();
 
+    void growPattern();
+
+    void shrinkPattern();
+
     // order
 
     //
@@ -284,6 +288,8 @@ private:
     friend class OrderDuplicateCmd;
     friend class OrderSwapCmd;
     friend class InsertRowCmd;
+    friend class GrowCmd;
+    friend class ShrinkCmd;
 
     Q_DISABLE_COPY(PatternModel)
 
@@ -319,6 +325,9 @@ private:
     // called by insert, remove and duplicate commands
     void insertOrderImpl(trackerboy::OrderRow const& row, int before);
     void removeOrderImpl(int at);
+
+
+    bool canGrowOrShrink() const;
 
     Module &mModule;
 
