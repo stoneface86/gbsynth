@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [0.6.4] - 2024-04-19
 
 ### Added
  - [#20] Drag n drop modules to load them.
