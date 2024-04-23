@@ -21,7 +21,7 @@ My tag is stoneface#7646 or you can join the server, https://discord.gg/m6wcAK3
 
 ## Status
 
-[v0.6.2](https://github.com/stoneface86/trackerboy/releases/tag/v0.6.3) is now available.
+[v0.6.3](https://github.com/stoneface86/trackerboy/releases/tag/v0.6.3) is now available.
 
 ![Demo](/.github/screenshot.png "Trackerboy application demo")
 

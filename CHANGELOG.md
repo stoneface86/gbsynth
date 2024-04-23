@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [0.6.5] - 2024-04-23
 
 ### Fixed
  - Off by 1 errors with new Grow/Shrink pattern commands
