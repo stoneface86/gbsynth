@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+ - Off by 1 errors with new Grow/Shrink pattern commands
+ - `Backspace` and `Insert` modifying the wrong track when the track id and
+   order id differ.
+
 ## [0.6.4] - 2024-04-19
 
 ### Added

@@ -87,6 +87,13 @@ trackerboy::OrderRow PatternModel::currentOrderRow() const {
     return order()[mCursorPattern];
 }
 
+trackerboy::Track& PatternModel::getTrack(int pattern, int ch) {
+    return source()->patterns().getTrack(
+        static_cast<trackerboy::ChType>(ch),
+        order()[pattern][ch]
+    );
+}
+
 PatternCursor PatternModel::cursor() const {
     return mCursor;
 }

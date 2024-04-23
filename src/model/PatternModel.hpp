@@ -295,6 +295,7 @@ private:
 
     // get the source of the model's data (the current song)
     trackerboy::Song* source() const;
+    trackerboy::Track& getTrack(int pattern, int ch);
     
     void setCursorRowImpl(int row, CursorChangeFlags &flags);
     void setCursorColumnImpl(int col, CursorChangeFlags &flags);

@@ -2,6 +2,8 @@
 #include "model/commands/pattern.hpp"
 #include "model/PatternModel.hpp"
 
+#define TU commandsPatternTU
+
 SelectionCmd::SelectionCmd(PatternModel &model) :
     mModel(model),
     mPattern((uint8_t)model.mCursorPattern),
@@ -29,13 +31,14 @@ void EraseCmd::redo() {
     {
         auto ctx = mModel.mModule.edit();
         // clear all set data in the selection
-        auto iter = mClip.selection().iterator();
-        auto pattern = mModel.source()->getPattern(mPattern);
+        auto const iter = mClip.selection().iterator();
 
         for (auto track = iter.trackStart(); track <= iter.trackEnd(); ++track) {
             auto tmeta = iter.getTrackMeta(track);
+            auto &data = mModel.getTrack(mPattern, track);
+
             for (auto row = iter.rowStart(); row <= iter.rowEnd(); ++row) {
-                auto &rowdata = pattern.getTrackRow(static_cast<trackerboy::ChType>(track), (uint16_t)row);
+                auto &rowdata = data[row];
                 if (tmeta.hasColumn<PatternAnchor::SelectNote>()) {
                     rowdata.note = 0;
                 }
@@ -126,17 +129,16 @@ void ReverseCmd::undo() {
 void ReverseCmd::reverse() {
     {
         auto ctx = mModel.mModule.edit();
-        auto iter = mSelection.iterator();
-        auto pattern = mModel.source()->getPattern(mPattern);
+        auto const iter = mSelection.iterator();
+        auto const midpoint = iter.rowStart() + (iter.rows() / 2);
 
-        auto midpoint = iter.rowStart() + (iter.rows() / 2);
         for (auto track = iter.trackStart(); track <= iter.trackEnd(); ++track) {
             auto tmeta = iter.getTrackMeta(track);
 
-            int lastRow = iter.rowEnd();
-            for (auto row = iter.rowStart(); row < midpoint; ++row) {
-                auto &first = pattern.getTrackRow(static_cast<trackerboy::ChType>(track), (uint16_t)row);
-                auto &last = pattern.getTrackRow(static_cast<trackerboy::ChType>(track), (uint16_t)lastRow);
+            auto &data = mModel.getTrack(mPattern, track);
+            for (auto row = iter.rowStart(), lastRow = iter.rowEnd(); row < midpoint; ++row, --lastRow) {
+                auto &first = data[row];
+                auto &last = data[lastRow];
 
                 // inefficient, but works
 
@@ -159,8 +161,6 @@ void ReverseCmd::reverse() {
                 if (tmeta.hasColumn<PatternAnchor::SelectEffect3>()) {
                     std::swap(first.effects[2], last.effects[2]);
                 }
-
-                --lastRow;
             }
         }
     }
@@ -177,14 +177,15 @@ ReplaceInstrumentCmd::ReplaceInstrumentCmd(PatternModel &model, int instrument) 
 void ReplaceInstrumentCmd::redo() {
     {
         auto ctx = mModel.mModule.edit();
-        auto iter = mClip.selection().iterator();
-        auto pattern = mModel.source()->getPattern(mPattern);
+        auto const iter = mClip.selection().iterator();
 
         for (auto track = iter.trackStart(); track <= iter.trackEnd(); ++track) {
             auto tmeta = iter.getTrackMeta(track);
+            auto &data = mModel.getTrack(mPattern, track);
+
             if (tmeta.hasColumn<PatternAnchor::SelectInstrument>()) {
                 for (auto row = iter.rowStart(); row <= iter.rowEnd(); ++row) {
-                    auto &rowdata = pattern.getTrackRow(static_cast<trackerboy::ChType>(track), row);
+                    auto &rowdata = data[row];
                     if (rowdata.queryInstrument().has_value()) {
                         rowdata.setInstrument((uint8_t)mInstrument);
                     }
@@ -205,32 +206,56 @@ GrowCmd::GrowCmd(PatternModel& model) :
 {
 }
 
+namespace TU {
+
+// grows a track, in place, for the given span of rows.
+static void grow(trackerboy::Track &track, int rowStart, int rowEnd) {
+    // we have to modify data backwards, from rowEnd to rowStart
+
+    auto const srcOff = (rowEnd - rowStart) / 2;
+
+    auto dst = rowStart + (srcOff * 2); // destination index of move
+    auto src = rowStart + srcOff;       // source index of move
+
+    // move rows
+    while (dst > rowStart) {
+        track[dst] = track[src];
+        dst -= 2;
+        --src;
+    }
+    // rows in between get cleared
+    for (auto i = rowStart + 1; i <= rowEnd; i += 2) {
+        track[i] = {};
+    }
+}
+
+// shrinks a track, in place, for the given span of rows
+static void shrink(trackerboy::Track &track, int rowStart, int rowEnd) {
+    // unlike grow, data is modified from rowStart to rowEnd
+    auto dst = rowStart + 1;
+    auto src = rowStart + 2;
+    // move rows
+    while (src <= rowEnd) {
+        track[dst] = track[src];
+        ++dst;
+        src += 2;
+    }
+    // clear the space that is now available from shrinking
+    while (dst <= rowEnd) {
+        track[dst] = {};
+        ++dst;
+    }
+}
+
+}
+
 void GrowCmd::redo() {
     {
         auto ctx = mModel.mModule.edit();
-        auto iter = mClip.selection().iterator();
-        auto pattern = mModel.source()->getPattern(mPattern);
-
-        auto const numGrows = iter.rows() / 2;
-        auto const srcRowStart = iter.rowStart() + numGrows - 1;
-        auto const destRowStart = iter.rowStart() + ((numGrows - 1) * 2);
-
+        auto const iter = mClip.selection().iterator();
         for (auto track = iter.trackStart(); track <= iter.trackEnd(); ++track) {
-            auto const trackCh = static_cast<trackerboy::ChType>(track);
-            auto dst = destRowStart;
-            auto src = srcRowStart;
-            // grow, move rows
-            for (auto i = numGrows; i >= 1; --i) {
-                pattern.getTrackRow(trackCh, dst) = pattern.getTrackRow(trackCh, src);
-                dst -= 2;
-                --src;
-            }
-            // add spacing, set to an empty row
-            for (auto i = iter.rowStart() + 1; i <= iter.rowEnd(); i += 2) {
-                pattern.getTrackRow(trackCh, i) = {};
-            }
+            TU::grow(mModel.getTrack(mPattern, track), iter.rowStart(), iter.rowEnd());
         }
-
     }
     mModel.invalidate(mPattern, true);
 }
@@ -247,30 +272,10 @@ ShrinkCmd::ShrinkCmd(PatternModel& model) :
 void ShrinkCmd::redo() {
     {
         auto ctx = mModel.mModule.edit();
-        auto iter = mClip.selection().iterator();
-        auto pattern = mModel.source()->getPattern(mPattern);
-
-        auto const outRows = iter.rows() / 2; // output row count, or number of rows after shrinking
-        auto const outStart = iter.rowStart() + 1;
-        auto const inStart = iter.rowStart() + 2;
-        auto const spaceStart = iter.rowStart() + outRows;
-
+        auto const iter = mClip.selection().iterator();
         for (auto track = iter.trackStart(); track <= iter.trackEnd(); ++track) {
-            auto const trackCh = static_cast<trackerboy::ChType>(track);
-            auto outRow = outStart;
-            auto inRow = inStart;
-            // do the shrink
-            for (auto i = 1; i < outRows; ++i) {
-                pattern.getTrackRow(trackCh, outRow) = pattern.getTrackRow(trackCh, inRow);
-                ++outRow;
-                inRow += 2;
-            }
-            // clear the free space after shrinking
-            for (auto i = spaceStart; i < iter.rowEnd(); ++i) {
-                pattern.getTrackRow(trackCh, i) = {};
-            }
+            TU::shrink(mModel.getTrack(mPattern, track), iter.rowStart(), iter.rowEnd());
         }
-
     }
     mModel.invalidate(mPattern, true);
 }
@@ -380,8 +385,7 @@ TransposeCmd::TransposeCmd(PatternModel &model, int8_t transposeAmount) :
 void TransposeCmd::redo()  {
     {
         auto ctx = mModel.mModule.edit();
-        auto iter = mClip.selection().iterator();
-        auto pattern = mModel.source()->getPattern(mPattern);
+        auto const iter = mClip.selection().iterator();
 
         for (auto track = iter.trackStart(); track <= iter.trackEnd(); ++track) {
             auto tmeta = iter.getTrackMeta(track);
@@ -389,9 +393,9 @@ void TransposeCmd::redo()  {
                 continue;
             }
 
+            auto &data = mModel.getTrack(mPattern, track);
             for (auto row = iter.rowStart(); row <= iter.rowEnd(); ++row) {
-                auto &rowdata = pattern.getTrackRow(static_cast<trackerboy::ChType>(track), (uint16_t)row);
-                rowdata.transpose(mTransposeAmount);
+                data[row].transpose(mTransposeAmount);
             }
         }
     }
@@ -434,7 +438,7 @@ BackspaceCmd::BackspaceCmd(PatternModel &model, QUndoCommand *parent) :
 void BackspaceCmd::redo() {
     {
         auto editor = mModel.mModule.edit();
-        auto &dest = mModel.source()->patterns().getTrack(static_cast<trackerboy::ChType>(mTrack), mPattern);
+        auto &dest = mModel.getTrack(mPattern, mTrack);
         auto const rows = (int)dest.size() - 1;
         for (int i = mRow - 1; i < rows; ++i) {
             dest[i] = dest[i + 1];
@@ -449,7 +453,7 @@ void BackspaceCmd::undo() {
 
     {
         auto editor = mModel.mModule.edit();
-        auto &dest = mModel.source()->patterns().getTrack(static_cast<trackerboy::ChType>(mTrack), mPattern);
+        auto &dest = mModel.getTrack(mPattern, mTrack);
         auto const restoredRow = mRow - 1;
         for (int i = (int)dest.size() - 1; i > restoredRow; --i) {
             dest[i] = dest[i - 1];
@@ -473,7 +477,7 @@ InsertRowCmd::InsertRowCmd(PatternModel& model, QUndoCommand* parent) :
 void InsertRowCmd::redo() {
     {
         auto editor = mModel.mModule.edit();
-        auto &track = mModel.source()->patterns().getTrack(static_cast<trackerboy::ChType>(mTrack), mPattern);
+        auto &track = mModel.getTrack(mPattern, mTrack);
         // shift down
         for (auto i = mLastRow; i > mRow; --i) {
             track[i] = track[i - 1];
@@ -486,7 +490,7 @@ void InsertRowCmd::redo() {
 void InsertRowCmd::undo() {
     {
         auto editor = mModel.mModule.edit();
-        auto &track = mModel.source()->patterns().getTrack(static_cast<trackerboy::ChType>(mTrack), mPattern);
+        auto &track = mModel.getTrack(mPattern, mTrack);
         // shift up
         for (auto i = mRow; i < mLastRow; ++i) {
             track[i] = track[i + 1];
@@ -496,3 +500,4 @@ void InsertRowCmd::undo() {
     mModel.invalidate(mPattern, true);
 }
 
+#undef TU
