@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
+  <mime-type type="application/x-trackerboy-module">
+    <comment>Trackerboy module</comment>
+    <icon name="x-trackerboy-module"/>
+    <glob pattern="*.tbm"/>
+    <magic>
+      <!-- 12-byte signature, defined in libtrackerboy's `fileformat.cpp`. -->
+      <match type="string" offset="0" value="\0TRACKERBOY\0"/>
+    </magic>
+  </mime-type>
+</mime-info>
